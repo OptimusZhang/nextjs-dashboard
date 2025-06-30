@@ -1,5 +1,10 @@
+'use client';
+
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { deleteInvoice } from '@/app/lib/actions';
+import { useActionState, startTransition } from 'react';
+import { ButtonLoadingSpinner } from '@/app/ui/loading-spinner';
 
 export function CreateInvoice() {
   return (
@@ -16,7 +21,7 @@ export function CreateInvoice() {
 export function UpdateInvoice({ id }: { id: string }) {
   return (
     <Link
-      href="/dashboard/invoices"
+      href={`/dashboard/invoices/${id}/edit`}
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <PencilIcon className="w-5" />
@@ -25,11 +30,28 @@ export function UpdateInvoice({ id }: { id: string }) {
 }
 
 export function DeleteInvoice({ id }: { id: string }) {
+
+  const [state, formAction, pending] = useActionState(deleteInvoice, null);
+
+  const onClickDelete = () => {
+    // prevent an error by startTransition: "An async function was passed to useActionState, but it was dispatched outside of an action context. This is likely not what you intended. Either pass the dispatch function to an `action` prop, or dispatch manually inside `startTransition`"
+    startTransition(() => {
+      formAction(id);
+    })
+  }
+
   return (
     <>
-      <button type="submit" className="rounded-md border p-2 hover:bg-gray-100">
+      <button onClick={onClickDelete} className="rounded-md border p-2 hover:bg-gray-100">
+        <input
+          hidden
+          id="id"
+          name="id"
+          defaultValue={id}
+          placeholder="Invoice ID"
+        />
         <span className="sr-only">Delete</span>
-        <TrashIcon className="w-5" />
+        {pending ? <ButtonLoadingSpinner /> : <TrashIcon className="w-5" />}
       </button>
     </>
   );
